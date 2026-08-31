@@ -1,0 +1,127 @@
+﻿VCP Code,VCP Code Name,Read-Write,Current Value,Maximum Value,Possible Values
+FF,Manufacturer Specific,,0,0,
+FD,Manufacturer Specific,,0,0,
+F7,Manufacturer Specific,,257,257,66
+F6,Manufacturer Specific,,0,0,1
+F2,Manufacturer Specific,,0,4,"0, 1, 2, 3, 4"
+F0,Manufacturer Specific,,0,1,"0, 1"
+ED,Manufacturer Specific,,1,1,"0, 1"
+EC,Manufacturer Specific,,0,0,"1, 2, 3"
+EB,Manufacturer Specific,,0,1,"0, 1, 2, 3"
+E9,Manufacturer Specific,,0,2,"0, 2"
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,50,100,
+E2,Manufacturer Specific,,50,100,
+E2,Manufacturer Specific,,50,100,
+E2,Manufacturer Specific,,50,100,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,70,255,
+E2,Manufacturer Specific,,70,255,
+E2,Manufacturer Specific,,70,255,
+E2,Manufacturer Specific,,100,0,
+E2,Manufacturer Specific,,0,1,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,0,1,
+E2,Manufacturer Specific,,0,1,
+E2,Manufacturer Specific,,0,1,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,0,1,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,0,1,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,2,8,
+E2,Manufacturer Specific,,100,100,
+E2,Manufacturer Specific,,70,255,
+E0,Manufacturer Specific,,2,8,"1, 2, 3, 5"
+DF,VCP Version,Read Only,514,,
+DC,Display Application,Read+Write,81,96,"0, 1, 3, 4, 5, 6, 7, 8, 11, 14, 31, 32, 33, 34, 35, 36, 48, 226"
+DA,Scan Mode,Read+Write,0,8,"0, 2"
+D6,Power Mode,Read+Write,1,5,"1, 4, 5"
+CC,OSD Language,Read+Write,2,36,"1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18, 20, 22, 23, 26, 30, 36"
+CA,OSD,Read+Write,2,2,"1, 2"
+C8,Display Controller ID,Read+Write,9,0,
+C6,Application Enable Key,Read Only,90,,
+C0,Display Usage Time,Read Only,0,,
+B6,Display Technology Type,Read Only,3,,
+B2,Flat Panel Sub-Pixel Layout,Read Only,1,,
+AE,Vertical Frequency,Read Only,14400,,
+AC,Horizontal Frequency,Read Only,58156,,
+A5,Window Select,Read+Write,0,512,
+A4,Window Mask Control,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+A0,6 Axis Color Control: Magenta,Read+Write,0,0,
+8D,Audio Mute / Screen Blank,Read+Write,2,2,"1, 2"
+87,Sharpness,Read+Write,5,10,
+86,Display Scaling,Read+Write,2,35,"1, 2, 10, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 35"
+72,Gamma,Read+Write,120,160,"80, 100, 120, 140, 160"
+70,Video Black Level: Blue,Read+Write,80,100,
+6E,Video Black Level: Green,Read+Write,80,100,
+6C,Video Black Level: Red,Read+Write,80,100,
+62,Audio: Speaker Volume,Read+Write,99,100,
+60,Input Select,Read+Write,18,22,"17, 18, 15, 33, 34, 47"
+52,Active Control,Read Only,100,,
+44,Rotation,Read+Write,0,0,"0, 1, 2, 3"
+42,Horizontal Keystone,Read+Write,0,0,"48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63"
+40,Horizontal Parallelogram,Read+Write,0,0,"0, 1"
+38,Vertical Convergence R/B,Read+Write,0,0,1
+24,Horizontal Pincushion,Read+Write,0,0,"0, 1, 2, 3, 4"
+20,Horizontal Position (Phase),Read+Write,100,100,"0, 2"
+1F,Auto Color Setup,Read+Write,0,0,"0, 1"
+1D,,Read+Write,0,0,"0, 1, 2"
+1C,Focus,Read+Write,0,0,"0, 1, 2"
+1B,,Read+Write,0,0,"0, 1, 2, 3"
+1A,Video Gain (Drive): Blue,Read+Write,100,100,
+1A,Video Gain (Drive): Blue,Read+Write,100,100,"0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
+19,,Read+Write,0,0,"0, 1, 3, 4, 5, 6, 7"
+18,Video Gain (Drive): Green,Read+Write,100,100,
+16,Video Gain (Drive): Red,Read+Write,100,100,
+14,Select Color Preset,Read+Write,1,13,"2, 4, 5, 6, 7, 8, 11, 13"
+13,Backlight Control,Read+Write,0,0,"0, 1"
+12,Contrast,Read+Write,50,100,
+11,Flesh Tone Enhancement,Read+Write,0,0,"0, 1, 2, 3, 4"
+10,Brightness,Read+Write,50,100,
+10,Brightness,Read+Write,50,100,"0, 1, 2, 3, 4"
+0F,,Read+Write,0,0,
+0E,Clock,Read+Write,0,0,
+0D,,Read+Write,0,0,
+0C,Color Temperature Request,Read+Write,70,255,
+0C,Color Temperature Request,Read+Write,70,255,
+0B,Color Temperature Increment,Read Only,100,,
+0B,Color Temperature Increment,Read Only,100,,
+0A,Restore Factory TV Defaults,Write Only,,0,
+09,,Read+Write,0,0,"0, 1, 2, 3, 4, 5, 6, 7"
+08,Restore Factory Color Defaults,Write Only,,1,
+08,Restore Factory Color Defaults,Write Only,,1,"0, 1"
+07,,Read+Write,0,0,"0, 1"
+06,Restore Factory Geometry Defaults,Write Only,,1,"0, 1, 2, 3"
+05,Restore Factory Luminance/ Contrast,Write Only,,1,
+04,Restore Factory Defaults,Write Only,,1,"0, 1, 2"
+04,Restore Factory Defaults,Write Only,,1,
+02,New Control Value,Read+Write,2,2,

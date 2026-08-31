@@ -1,0 +1,34 @@
+﻿VCP Code,VCP Code Name,Read-Write,Current Value,Maximum Value,Possible Values
+FD,Manufacturer Specific,,99,255,
+F2,Manufacturer Specific,,0,255,
+F1,Manufacturer Specific,,11,65535,
+F0,Manufacturer Specific,,0,255,"13, 14, 12, 15, 16, 17, 19, 49, 50, 52, 54"
+EA,Manufacturer Specific,,65025,65535,"0, 1"
+E2,Manufacturer Specific,,0,255,"0, 32, 33, 34, 47, 4, 30, 31, 29, 14, 18, 20, 39, 35, 36, 58"
+E1,Manufacturer Specific,,0,1,
+E0,Manufacturer Specific,,0,1,
+DF,VCP Version,Read Only,513,,
+DC,Display Application,Read+Write,0,5,"0, 5"
+D6,Power Mode,Read+Write,3,5,"1, 4, 5"
+CC,OSD Language,Read+Write,2,13,"2, 10, 3, 4, 8, 9, 13, 6"
+CA,OSD,Read+Write,2,2,
+C9,Display Firmware Level,Read Only,256,,
+C8,Display Controller ID,Read+Write,5897,39,
+C6,Application Enable Key,Read Only,17868,,
+B6,Display Technology Type,Read Only,3,,
+B2,Flat Panel Sub-Pixel Layout,Read Only,1,,
+AE,Vertical Frequency,Read Only,12010,,
+AC,Horizontal Frequency,Read Only,52128,,
+62,Audio: Speaker Volume,Read+Write,100,100,
+60,Input Select,Read+Write,18,18,"15, 17, 18"
+52,Active Control,Read Only,16,,
+1A,Video Gain (Drive): Blue,Read+Write,100,100,
+18,Video Gain (Drive): Green,Read+Write,100,100,
+16,Video Gain (Drive): Red,Read+Write,100,100,
+14,Select Color Preset,Read+Write,75,100,"5, 8, 11, 12"
+12,Contrast,Read+Write,75,100,
+10,Brightness,Read+Write,30,100,
+08,Restore Factory Color Defaults,Write Only,,1,
+05,Restore Factory Luminance/ Contrast,Write Only,,1,
+04,Restore Factory Defaults,Write Only,,1,
+02,New Control Value,Read+Write,1,255,

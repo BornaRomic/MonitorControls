@@ -90,12 +90,66 @@ Two alternatives if you would rather not use a scheduled task:
 | `Ctrl+Alt+O` | Rotate the right monitor (landscape <-> portrait) |
 | `Ctrl+Alt+Shift+O` | Force the right monitor back to landscape |
 | `Ctrl+Alt+Up` / `Down` | Nudge brightness on everything |
+| `Ctrl+Alt+T` | **Tune** — sliders per monitor, live preview, save to a profile |
 | `Ctrl+Alt+M` | Open the ControlMyMonitor GUI |
 | `Ctrl+Alt+R` | Reload after editing `config.ini` |
 
 Profile hotkeys are assigned in the order the `[Profile.*]` sections appear in
 `config.ini`, up to 9. Add a `[Profile.Gaming]` section and it gets `Ctrl+Alt+4`
 automatically after a reload — no script editing.
+
+---
+
+## Tuning a profile by eye (`Ctrl+Alt+T`)
+
+Picking the numbers for Day and Night by editing the INI means guessing a
+value, saving, pressing a hotkey and looking at the result. The tuner runs
+that loop the other way round: **drag a slider, watch the screen change, press
+Save once it looks right.**
+
+```
+Profile: [ CodeNight v ]   [ Revert ]  [ Read screens ]
+
+  [x] Left    Philips Evnia
+        Brightness  ──●──────────────   0
+        [ ] Contrast  ───────●───────   50
+        [x] Soft dim on the GPU - goes below the panel's own 0
+              Output  ──────●────────   45%
+              Gamma   ────●──────────   1.15
+              Warmth  ────●──────────   0.35
+  ...
+  [x] Live preview   [ ] Link brightness   [x] GPU soft dim
+  [ Apply now ]  [ Save ]  [ Save as new... ]  [ Close ]
+```
+
+- **Pick a profile** from the dropdown and its stored values load into the
+  sliders — and, with *Live preview* on, onto the monitors. Flipping between
+  Day and Night in the dropdown is the fastest way to compare them.
+- **Every monitor gets its own row.** Untick a monitor and this profile leaves
+  it alone entirely (the key is removed from the section on save).
+- **Contrast is opt-in per monitor**, matching the `brightness,contrast` form
+  in the INI. Unticked means brightness only.
+- **GPU soft dim** exposes `[Soft.<profile>]` — the attenuation that gets a
+  panel below its own brightness 0. Off by default to keep the window short.
+- **Link brightness** moves every included monitor by the same *step*, not to
+  the same value. Panels disagree wildly about what a number means — Left 20
+  and Right 45 look the same here — so matching them outright would throw away
+  the balance you just found.
+- **Read screens** pulls the external monitors' current values back into the
+  sliders, so a level you dialled in on the monitor's own OSD can be captured.
+- **Save** writes straight back into `[Profile.<name>]` and `[Soft.<name>]` of
+  the same `config.ini` everything else reads. A tuned profile is an ordinary
+  profile: hotkey, tray menu and `Set-Profile.ps1` at logon all pick it up.
+  **Save as new...** creates a section that did not exist and, if it lands in
+  the first nine, hands it a `Ctrl+Alt+n` on the spot.
+
+Comments in `config.ini` survive a save — only the value lines change — and the
+previous version is kept as `config.ini.bak`. If you have the file open in an
+editor, reload it after saving.
+
+Brightness and contrast are debounced ~180 ms, because each DDC/CI call costs
+50–150 ms and a slider drag would otherwise queue hundreds of them. The gamma
+sliders are a direct `DllCall` and track the drag with no lag at all.
 
 ---
 
@@ -381,7 +435,9 @@ plumbing is already there — `Set-MonitorVcp -Code 62` in `lib\Common.ps1`.
 | `lib\Common.ps1` | Shared helpers (INI parsing, DDC calls, WMI brightness). |
 | `lib\Display.ps1` | Windows display API bindings: rotation + stable id lookup. |
 | `lib\Gamma.ps1` | Gamma-ramp maths for the soft dimming. |
+| `lib\Gdi.ahk` | The same display + gamma APIs for AutoHotkey, so the tuner needs no PowerShell per slider tick. |
 | `MonitorControls.ahk` | Hotkeys and tray menu. |
+| `Tuner.ahk` | The `Ctrl+Alt+T` window: per-monitor sliders, live preview, save back to `config.ini`. |
 | `1-Detect.bat`, `2-Test.bat`, `Install-Startup.bat` | Double-click entry points. |
 | `3-Debug.bat` | Diagnostics: shows the errors hidden hotkey windows swallow. |
 | `4-Startup-Task.bat`, `Setup-Startup.ps1` | ONE-TIME setup: registers the logon scheduled task. |

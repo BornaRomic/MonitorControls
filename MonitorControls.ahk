@@ -15,6 +15,7 @@
 ;    Ctrl+Alt+O           rotate the RotateTarget monitor (landscape <-> portrait)
 ;    Ctrl+Alt+Shift+O     force that monitor back to landscape
 ;    Ctrl+Alt+Up/Down     nudge brightness on everything
+;    Ctrl+Alt+T           open the tuner: sliders per monitor, live preview
 ;    Ctrl+Alt+M           open the ControlMyMonitor GUI
 ;    Ctrl+Alt+R           reload after editing config.ini
 ;
@@ -24,6 +25,12 @@
 ; ===========================================================================
 
 SetWorkingDir A_ScriptDir
+
+; Gdi.ahk  - EnumDisplayDevices and the gamma-ramp DllCalls, so the tuner can
+;            move a ramp on every slider tick without spawning PowerShell.
+; Tuner.ahk - the Ctrl+Alt+T window.
+#Include lib\Gdi.ahk
+#Include Tuner.ahk
 
 global CfgFile := ""
 global CMM := ""
@@ -84,6 +91,10 @@ LoadConfig() {
                   , label:  Clean(IniRead(CfgFile, sec, "Label", name))
                   , type:   Clean(IniRead(CfgFile, sec, "Type", "External"))
                   , id:     id
+                  ; The EDID key on its own, kept separate from target: the
+                  ; gamma ramps need it to look up the current \\.\DISPLAYn,
+                  ; which ControlMyMonitor never sees.
+                  , key:    key
                   , target: target
                   , pc:     Clean(IniRead(CfgFile, sec, "InputPC", ""))
                   , lap:    Clean(IniRead(CfgFile, sec, "InputLaptop", "")) })
@@ -133,6 +144,7 @@ BuildTray() {
     T.Add("Rotate " . RotateTarget . ": toggle`tCtrl+Alt+O",          MenuRotate.Bind("Toggle"))
     T.Add("Which screen is which?",                                   (*) => ShowDisplays())
     T.Add()
+    T.Add("Tune profile...`tCtrl+Alt+T", (*) => ShowTuner())
     T.Add("Show current values",         (*) => ShowStatus())
     T.Add("Edit config.ini",             (*) => Run('notepad.exe "' . CfgFile . '"'))
     T.Add("Open ControlMyMonitor",       (*) => Run('"' . CMM . '"'))
@@ -159,6 +171,7 @@ BuildHotkeys() {
     Hotkey("^!+o",   (*) => Rotate("Landscape"))
     Hotkey("^!Up",   (*) => Nudge(NudgeStep))
     Hotkey("^!Down", (*) => Nudge(-NudgeStep))
+    Hotkey("^!t",    (*) => ShowTuner())
     Hotkey("^!m",    (*) => Run('"' . CMM . '"'))
     Hotkey("^!r",    (*) => Reload())
 }

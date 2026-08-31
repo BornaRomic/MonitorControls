@@ -5,3 +5,6 @@
 *.vsidx
 *.sqlite
 /.vs
+
+# Backup written by the tuner before it edits config.ini
+*.bak

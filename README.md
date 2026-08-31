@@ -90,6 +90,8 @@ Two alternatives if you would rather not use a scheduled task:
 | `Ctrl+Alt+O` | Rotate the right monitor (landscape <-> portrait) |
 | `Ctrl+Alt+Shift+O` | Force the right monitor back to landscape |
 | `Ctrl+Alt+Up` / `Down` | Nudge brightness on everything |
+| `Ctrl+Alt+Shift+Up` / `Down` | Nudge **only the screen the active window is on** |
+| `Ctrl+Alt+F` | Toggle dimming of the screens you are not using |
 | `Ctrl+Alt+T` | **Tune** — sliders per monitor, live preview, save to a profile |
 | `Ctrl+Alt+M` | Open the ControlMyMonitor GUI |
 | `Ctrl+Alt+R` | Reload after editing `config.ini` |
@@ -97,6 +99,151 @@ Two alternatives if you would rather not use a scheduled task:
 Profile hotkeys are assigned in the order the `[Profile.*]` sections appear in
 `config.ini`, up to 9. Add a `[Profile.Gaming]` section and it gets `Ctrl+Alt+4`
 automatically after a reload — no script editing.
+
+---
+
+## Doing it without you (schedule, focus dim, idle dim)
+
+Three things can move the screens on their own. All of them are **off by
+default** - a tool that changes your brightness unasked is worse than one that
+doesn't - and each is one tray click or one uncommented line away.
+
+### The gamma problem, and why these compose
+
+The profile's `[Soft.*]` dimming, focus dim and idle dim all want to darken the
+same screen. If each wrote `SetDeviceGammaRamp` itself they would clobber one
+another: walking away from an already-dim `CodeNight` would either double-dim,
+or "restore" to full brightness on the way back and quietly undo the profile.
+
+So nothing writes a ramp except `Dimmer.ahk`. The three inputs are kept apart
+and **multiplied**:
+
+```
+output = profile level  x  focus multiplier  x  idle multiplier
+```
+
+A `CodeNight` screen at 45% that is not the one you're looking at (x0.60) and
+has gone idle (x0.35) lands at 9.5% - and lifting any one of those three
+restores exactly that one. There is a 5% floor so nothing can reach black.
+
+### A profile at a time of day
+
+```ini
+AutoProfile=Day@07:30, CodeNight@20:30
+AutoProfile=Day@sunrise, Night@sunset-30
+Latitude=45.81
+Longitude=15.98
+```
+
+`sunrise` / `sunset` are computed from your latitude and longitude with NOAA's
+approximation - arithmetic, so no network, no API key, nothing to expire.
+Longitude is positive **east**. Accuracy is about a minute: for Zagreb on 31
+August it gives 06:15 and 19:38 against published 06:16 and 19:39. An optional
+`+n` / `-n` offset shifts an entry, so `sunset-30` fires half an hour early.
+
+An entry is in force from its own time until the next one, so whichever applies
+**right now** is applied the moment the script starts - launching at 21:00 lands
+on the evening profile instead of waiting until morning. Picking a profile by
+hand parks the schedule on the current slot, so it will not immediately
+overwrite your choice; the next boundary still fires normally. Toggle the whole
+thing from the tray.
+
+### Dimming the screens you're not using (`Ctrl+Alt+F`)
+
+```ini
+FocusDim=0.45
+FocusDimDelay=600
+```
+
+The screens that don't hold the active window drop to `FocusDim` of their
+normal output. `FocusDimDelay` is how long a window has to keep focus first -
+without it, alt-tabbing across the desk would strobe. Because it's a gamma
+ramp it's instant, and because it goes through the compositor it stacks with
+whatever profile is loaded rather than fighting it.
+
+Focus dim **suspends itself while the tuner is open** - dimming two thirds of
+the desk is not helpful when the whole point is judging how a profile looks.
+
+The hotkey turns it on at 0.45 without editing anything, so leaving `FocusDim=0`
+does not put the feature out of reach.
+
+### Dimming when you walk away
+
+```ini
+IdleDimAfter=300
+IdleDimLevel=0.35
+IdleDimFadeMs=1500
+```
+
+`IdleDimAfter` is in **seconds**. It watches `A_TimeIdlePhysical`, which ignores
+synthetic input, so a script moving the mouse doesn't count as you being there.
+Slow on the way down (1.5 s, so it isn't startling) and quick on the way back
+(250 ms, so the screen is usable by the time you've finished moving the mouse).
+
+---
+
+## Fading instead of snapping
+
+```ini
+FadeMs=450
+FadeDdcSteps=4
+```
+
+Profiles ease in. This is honest about a hardware limit, so it's worth knowing
+exactly what happens:
+
+| Part | How it fades |
+|---|---|
+| GPU gamma / soft dim | Genuinely smooth, ~40 fps - it's a `DllCall` |
+| Panel brightness / contrast | `FadeDdcSteps` coarse steps underneath - each DDC/CI call costs 50-150 ms, so a real fade isn't possible |
+| Internal laptop panel | Set once; WMI needs a PowerShell round trip |
+
+Intermediate DDC steps are fired asynchronously so they can't stall the gamma
+fade sharing the timer; the **final** step is synchronous and authoritative, so
+the panel always lands exactly on the target even if a step was dropped. The
+first time a profile is applied there's no known starting value, so brightness
+snaps rather than fading from a guess - same after a manual nudge.
+
+`FadeMs=0` restores the old instant switch.
+
+---
+
+## Nudging one screen (`Ctrl+Alt+Shift+Up`/`Down`)
+
+`Ctrl+Alt+Up`/`Down` moves every monitor. Add **Shift** and it moves only the
+screen the active window is sitting on - judged by the window's centre point,
+so a window straddling a seam counts as being on the screen it mostly covers.
+Falls back to the mouse pointer when nothing useful is focused.
+
+---
+
+## Volume and picture presets
+
+Two more VCP codes your monitors already expose:
+
+| | VCP | Stored in |
+|---|---|---|
+| Speaker volume | `62` | `[Volume.<profile>]` |
+| Picture preset | `14` | `[Preset.<profile>]` |
+
+Both are per-profile and opt-in per monitor, so a profile that doesn't mention
+them leaves the monitor alone. Tick **Sound & colour** in the tuner to get the
+rows.
+
+Support is declared in config, not probed:
+
+```ini
+[Monitor.Left]
+Volume=1
+Presets=2:Display native,4:5000K,5:6500K,6:7500K,7:8200K,8:9300K,11:User 1,13:User 3
+```
+
+Probing is tempting but wrong here: a monitor with no speakers still answers
+`/GetValue 62` with something that looks like a perfectly valid level, so
+probing invents features that aren't there. `Detect-Monitors.ps1` reads the real
+capability table and writes both lines for you; a bare number list like
+`Presets=5,11` works too and picks up the standard MCCS names. **Only the values
+a panel lists are accepted** - sending any other one is silently ignored.
 
 ---
 
@@ -264,6 +411,14 @@ Three things to know about gamma ramps:
 ---
 
 ## Things that will bite you
+
+**HDR silently kills every gamma trick.** Windows ignores `SetDeviceGammaRamp`
+on a display in HDR mode — no error, the call reports success and nothing
+happens. That takes out soft dim, focus dim and idle dim in one go, so if the
+sliders stop doing anything on the Evnia, check HDR first. Panel brightness and
+contrast still work, because those are DDC/CI and have nothing to do with the
+GPU. Some fullscreen games and driver events also reset ramps; `Ctrl+Alt+R`
+reapplies.
 
 **Switching to the laptop blinds the PC.** Once `Ctrl+Alt+L` runs, the monitors
 show the laptop and your PC is still running with no picture. The hotkey script
@@ -435,7 +590,10 @@ plumbing is already there — `Set-MonitorVcp -Code 62` in `lib\Common.ps1`.
 | `lib\Common.ps1` | Shared helpers (INI parsing, DDC calls, WMI brightness). |
 | `lib\Display.ps1` | Windows display API bindings: rotation + stable id lookup. |
 | `lib\Gamma.ps1` | Gamma-ramp maths for the soft dimming. |
-| `lib\Gdi.ahk` | The same display + gamma APIs for AutoHotkey, so the tuner needs no PowerShell per slider tick. |
+| `lib\Util.ahk` | Small pure helpers shared by every `.ahk` file - the part the tests exercise directly. |
+| `lib\Gdi.ahk` | Display enumeration, monitor geometry and the gamma-ramp DllCalls. |
+| `Dimmer.ahk` | The only thing that writes a gamma ramp: composes profile x focus x idle, and cross-fades. |
+| `Auto.ahk` | Time-of-day schedule (incl. sunrise/sunset), focus watcher, idle watcher. |
 | `MonitorControls.ahk` | Hotkeys and tray menu. |
 | `Tuner.ahk` | The `Ctrl+Alt+T` window: per-monitor sliders, live preview, save back to `config.ini`. |
 | `1-Detect.bat`, `2-Test.bat`, `Install-Startup.bat` | Double-click entry points. |

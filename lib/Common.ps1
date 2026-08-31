@@ -313,6 +313,31 @@ function Split-ProfileValue {
     return $out
 }
 
+# --- VCP 14 (Select Color Preset), the standard MCCS table -----------------
+$script:PresetNames = @{
+    1  = 'sRGB'
+    2  = 'Display native'
+    3  = '4000K'
+    4  = '5000K'
+    5  = '6500K'
+    6  = '7500K'
+    7  = '8200K'
+    8  = '9300K'
+    9  = '10000K'
+    10 = '11500K'
+    11 = 'User 1'
+    12 = 'User 2'
+    13 = 'User 3'
+}
+
+function Get-PresetFriendlyName {
+    param($Value)
+    $i = 0
+    if (-not [int]::TryParse("$Value", [ref]$i)) { return "preset $Value" }
+    if ($script:PresetNames.ContainsKey($i)) { return $script:PresetNames[$i] }
+    return "preset $i"
+}
+
 function Get-InputFriendlyName {
     param($Value)
     $i = 0

@@ -31,6 +31,13 @@ param(
     [Parameter(ParameterSetName = 'Apply')]
     [switch]$ExternalOnly,
 
+    # Skip the GPU gamma ramps. MonitorControls.ahk passes this because, while
+    # the hotkey script is running, it owns the ramps: focus dim and idle dim
+    # move them too, so they need a single owner. Run from a shell or at logon
+    # without it, this script still does the whole job.
+    [Parameter(ParameterSetName = 'Apply')]
+    [switch]$NoSoft,
+
     # Send the value even if the monitor already reports it
     [Parameter(ParameterSetName = 'Apply')]
     [switch]$Force
@@ -108,6 +115,20 @@ foreach ($m in $plan) {
         Set-MonitorVcp -Exe $exe -MonitorId $target -Code $script:VCP.Contrast -Value $vals.Contrast -Force:$Force
         $msg += (" / contrast {0}" -f $vals.Contrast)
     }
+
+    # Speaker volume and picture preset live in their own sections, so a
+    # profile that does not mention them leaves the monitor alone.
+    $vol = Get-Ini $ini "Volume.$Name" $m.Name ''
+    if ($vol -match '^\d+$') {
+        Set-MonitorVcp -Exe $exe -MonitorId $target -Code $script:VCP.Volume -Value ([int]$vol) -Force:$Force
+        $msg += (" / volume {0}" -f $vol)
+    }
+    $pre = Get-Ini $ini "Preset.$Name" $m.Name ''
+    if ($pre -match '^\d+$') {
+        Set-MonitorVcp -Exe $exe -MonitorId $target -Code $script:VCP.ColorPreset -Value ([int]$pre) -Force:$Force
+        $msg += (" / {0}" -f (Get-PresetFriendlyName $pre))
+    }
+
     $applied += $msg
 }
 
@@ -118,7 +139,7 @@ foreach ($m in $plan) {
 #  WITHOUT a [Soft.*] section resets the ramps - otherwise switching from a
 #  dimmed profile back to Day would leave the screen dark.
 # ---------------------------------------------------------------------------
-if (-not $ExternalOnly) {
+if (-not $ExternalOnly -and -not $NoSoft) {
     $softSection = "Soft.$Name"
     $hasSoft     = $ini.Contains($softSection)
 

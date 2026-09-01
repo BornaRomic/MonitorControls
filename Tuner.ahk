@@ -1,4 +1,4 @@
-; ===========================================================================
+﻿; ===========================================================================
 ;  Tuner.ahk - the "design a profile by eye" window  (Ctrl+Alt+T)
 ;
 ;  Editing config.ini means guessing a number, saving, pressing a hotkey and
@@ -27,7 +27,7 @@ global TunerHint  := ""
 global TunerLive  := true
 global TunerLink  := false
 global TunerSoft  := false   ; show the GPU soft-dim sliders
-global TunerExtra := false   ; show the volume / colour-preset rows
+global TunerExtra := false   ; show the picture-preset row
 global TunerProf  := ""
 global TunerDirty := Map()
 global TunerBusy  := false   ; suppress events while repopulating controls
@@ -67,8 +67,6 @@ TunerInitVals() {
                        , level: 100          ; 5..100  -> 0.05..1.00
                        , gamma: 100          ; 30..300 -> 0.30..3.00
                        , warmth: 0           ; 0..100  -> 0.00..1.00
-                       , useVol: false
-                       , vol: 30
                        , usePreset: false
                        , preset: m.presets.Length ? m.presets[1].val : 0
                        , dev: ResolveDisplayDevice(m.key, m.id) })
@@ -111,14 +109,6 @@ TunerLoadProfile(name) {
             v.level  := TunerPct(sp.Has(1) ? sp[1] : "", 100)
             v.gamma  := TunerPct(sp.Has(2) ? sp[2] : "", 100)
             v.warmth := TunerPct(sp.Has(3) ? sp[3] : "", 0)
-        }
-
-        vol := Clean(IniRead(CfgFile, "Volume." name, m.name, ""))
-        if (vol != "" && IsInteger(vol)) {
-            v.useVol := true
-            v.vol := Integer(vol)
-        } else {
-            v.useVol := false
         }
 
         pre := Clean(IniRead(CfgFile, "Preset." name, m.name, ""))
@@ -253,17 +243,9 @@ TunerBuild() {
             row.wrm.OnEvent("Change", TunerSoftChange.Bind(i))
         }
 
-        ; Speaker volume (VCP 62) and picture preset (VCP 14). Only monitors
-        ; that declared them in config.ini get a row - see ParsePresets.
+        ; Picture preset (VCP 14). Only monitors that listed their accepted
+        ; values in config.ini get a row - see ParsePresets.
         if (TunerExtra && m.type != "Internal") {
-            if (m.hasVol) {
-                row.vol   := g.Add("Slider", "x" xSld " y+8 w" SLD " Range0-100 Page5 NoTicks", v.vol)
-                row.volOn := g.Add("Checkbox", "x" xLbl " yp+2 w" LBL " h20", "Volume")
-                row.volOn.Value := v.useVol
-                row.volOn.OnEvent("Click", TunerToggleVol.Bind(i))
-                row.volv := g.Add("Text", "x" xVal " yp w" VAL " h20", v.vol)
-                row.vol.OnEvent("Change", TunerVolChange.Bind(i))
-            }
             if (m.presets.Length) {
                 labels := []
                 for p in m.presets
@@ -295,7 +277,7 @@ TunerBuild() {
     cSoft.Value := TunerSoft
     cSoft.OnEvent("Click", TunerSetSoftRows)
 
-    cExtra := g.Add("Checkbox", "x+14 yp h20", "Sound && colour")
+    cExtra := g.Add("Checkbox", "x+14 yp h20", "Picture preset")
     cExtra.Value := TunerExtra
     cExtra.OnEvent("Click", TunerSetExtraRows)
 
@@ -396,11 +378,6 @@ TunerRefresh() {
             row.wrm.Value    := v.warmth
             row.wrmv.Value   := TunerF2(v.warmth)
         }
-        if row.HasProp("vol") {
-            row.volOn.Value := v.useVol
-            row.vol.Value   := v.vol
-            row.volv.Value  := v.vol
-        }
         if row.HasProp("pre") {
             row.preOn.Value := v.usePreset
             ChoosePresetCtrl(row.pre, Mons[i].presets, v.preset)
@@ -429,10 +406,6 @@ TunerEnableRow(i) {
         row.lvl.Enabled := on
         row.gam.Enabled := on
         row.wrm.Enabled := on
-    }
-    if row.HasProp("vol") {
-        row.volOn.Enabled := v.include
-        row.vol.Enabled   := v.include && v.useVol
     }
     if row.HasProp("pre") {
         row.preOn.Enabled := v.include
@@ -521,24 +494,6 @@ TunerToggleSoft(i, ctrl, *) {
         TunerApplySoft(i)          ; unticking resets the ramp
 }
 
-TunerVolChange(i, ctrl, *) {
-    if TunerBusy
-        return
-    TunerVals[i].vol := ctrl.Value
-    TunerRows[i].volv.Value := ctrl.Value
-    TunerMark(i)
-    TunerSchedule()
-}
-
-TunerToggleVol(i, ctrl, *) {
-    TunerVals[i].useVol := ctrl.Value
-    TunerEnableRow(i)
-    if (TunerLive && ctrl.Value) {
-        TunerMark(i)
-        TunerSchedule()
-    }
-}
-
 TunerPresetChange(i, *) {
     if TunerBusy
         return
@@ -620,8 +575,6 @@ TunerApplyOne(i) {
     CmmRun('/SetValueIfNeeded "' m.target '" 10 ' v.bright)
     if v.useContrast
         CmmRun('/SetValueIfNeeded "' m.target '" 12 ' v.contrast)
-    if (v.useVol && m.hasVol)
-        CmmRun('/SetValueIfNeeded "' m.target '" 62 ' v.vol)
 }
 
 ; Soft dim goes through Dimmer.ahk like everything else, so a preview composes
@@ -698,7 +651,6 @@ TunerSave(name) {
                , CfgFile, "Soft." name, m.name)
     }
 
-    TunerSaveSection("Volume." name, "useVol", "vol")
     TunerSaveSection("Preset." name, "usePreset", "preset")
 
     ; A profile that did not exist a moment ago needs a tray entry and a
@@ -717,8 +669,7 @@ TunerSave(name) {
 }
 
 ; One simple integer per monitor, written only when its checkbox is ticked.
-; Used for [Volume.<profile>] and [Preset.<profile>], which have exactly the
-; same shape as each other.
+; Used for [Preset.<profile>].
 TunerSaveSection(section, flagProp, valueProp) {
     isNew := TunerSectionIsNew(section)
     for i, m in Mons {

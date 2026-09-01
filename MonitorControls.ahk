@@ -150,11 +150,9 @@ LoadConfig() {
                   ; which ControlMyMonitor never sees.
                   , key:    key
                   , target: target
-                  ; VCP 62 / 14. Declared in config rather than probed: a
-                  ; monitor without speakers answers /GetValue 62 with a value
-                  ; that looks perfectly valid, so probing invents features
-                  ; that are not there. Detect-Monitors.ps1 fills these in.
-                  , hasVol: Clean(IniRead(CfgFile, sec, "Volume", "0")) = "1"
+                  ; VCP 14. Declared in config rather than probed, because
+                  ; only the values a panel actually lists are accepted.
+                  ; Detect-Monitors.ps1 fills this in.
                   , presets: ParsePresets(Clean(IniRead(CfgFile, sec, "Presets", "")))
                   , pc:     Clean(IniRead(CfgFile, sec, "InputPC", ""))
                   , lap:    Clean(IniRead(CfgFile, sec, "InputLaptop", "")) })
@@ -198,18 +196,26 @@ BuildTray() {
     T.Add("Rotate " . RotateTarget . ": toggle`tCtrl+Alt+O",          MenuRotate.Bind("Toggle"))
     T.Add("Which screen is which?",                                   (*) => ShowDisplays())
     T.Add()
+    ; Menu.Check() matches on the WHOLE item text, shortcut hint and all. Hold
+    ; each label in a variable so Add and Check cannot drift apart - when they
+    ; do, Check throws "Nonexistent menu item" and every item after it here
+    ; never gets added, leaving a mysteriously short tray menu.
     if AutoSchedule.Length {
-        T.Add("Auto profile by time", (*) => ToggleSchedule())
+        lSched := "Auto profile by time"
+        T.Add(lSched, (*) => ToggleSchedule())
         if SchedOn
-            T.Check("Auto profile by time")
+            T.Check(lSched)
         T.Add("Show schedule", (*) => MsgBox(SchedDescribe(), "MonitorControls - schedule", "Iconi"))
     }
-    T.Add("Dim unfocused screens`tCtrl+Alt+F", (*) => ToggleFocusDim())
+    lFocus := "Dim unfocused screens`tCtrl+Alt+F"
+    T.Add(lFocus, (*) => ToggleFocusDim())
     if (FocusDim > 0)
-        T.Check("Dim unfocused screens")
-    T.Add("Dim when idle", (*) => ToggleIdleDim())
+        T.Check(lFocus)
+
+    lIdle := "Dim when idle"
+    T.Add(lIdle, (*) => ToggleIdleDim())
     if (IdleAfter > 0)
-        T.Check("Dim when idle")
+        T.Check(lIdle)
     T.Add()
     T.Add("Tune profile...`tCtrl+Alt+T", (*) => ShowTuner())
     T.Add("Show current values",         (*) => ShowStatus())
@@ -343,8 +349,8 @@ Flash(text) {
 ;  Apply a profile.
 ;
 ;  Brightness, contrast and the soft-dim base are handed to Dimmer.ahk, which
-;  cross-fades them together on one timer. Volume and colour preset are set
-;  outright - they are not visual, so there is nothing to ease.
+;  cross-fades them together on one timer. The colour preset is set outright
+;  - it is a mode switch, not a level, so there is nothing to ease.
 ;
 ;  The gamma ramps are NOT delegated to Set-Profile.ps1 any more: focus dim and
 ;  idle dim also move them, so they need a single owner inside this process.
@@ -388,11 +394,6 @@ ApplyProfile(name, fadeMs := -1) {
         DimSetDdc(i, Integer(bright), (contrast != "" && IsInteger(contrast)) ? Integer(contrast) : -1)
         parts.Push(m.name ": " bright (contrast != "" ? "/" contrast : ""))
 
-        vol := Clean(IniRead(CfgFile, "Volume." name, m.name, ""))
-        if (vol != "" && IsInteger(vol) && m.hasVol) {
-            CmmRun('/SetValueIfNeeded "' m.target '" 62 ' vol)
-            parts.Push(m.name " vol " vol)
-        }
         pre := Clean(IniRead(CfgFile, "Preset." name, m.name, ""))
         if (pre != "" && IsInteger(pre)) {
             CmmRun('/SetValueIfNeeded "' m.target '" 14 ' pre)

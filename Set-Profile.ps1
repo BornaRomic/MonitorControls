@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Applies a named brightness/contrast profile to all configured monitors.
 
@@ -116,13 +116,8 @@ foreach ($m in $plan) {
         $msg += (" / contrast {0}" -f $vals.Contrast)
     }
 
-    # Speaker volume and picture preset live in their own sections, so a
-    # profile that does not mention them leaves the monitor alone.
-    $vol = Get-Ini $ini "Volume.$Name" $m.Name ''
-    if ($vol -match '^\d+$') {
-        Set-MonitorVcp -Exe $exe -MonitorId $target -Code $script:VCP.Volume -Value ([int]$vol) -Force:$Force
-        $msg += (" / volume {0}" -f $vol)
-    }
+    # The picture preset lives in its own section, so a profile that does not
+    # mention it leaves the monitor alone.
     $pre = Get-Ini $ini "Preset.$Name" $m.Name ''
     if ($pre -match '^\d+$') {
         Set-MonitorVcp -Exe $exe -MonitorId $target -Code $script:VCP.ColorPreset -Value ([int]$pre) -Force:$Force

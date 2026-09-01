@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     One-time setup: finds ControlMyMonitor, inspects every display, and writes
     a ready-to-use config.ini for the rest of the toolkit.
@@ -135,7 +135,7 @@ foreach ($m in $monitors) {
     }
 
     $curBright = $null; $curContrast = $null; $curInput = $null; $inputOptions = @()
-    $hasVolume = $false; $presetOptions = @()
+    $presetOptions = @()
     $csvHadRows = ($rows.Count -gt 0)
 
     if ($rows.Count -gt 0) {
@@ -158,10 +158,6 @@ foreach ($m in $monitors) {
                         $inputOptions = @([regex]::Matches($pos, '\d+') | ForEach-Object { [int]$_.Value } | Select-Object -Unique)
                     }
                 }
-                # Speaker volume. Its presence in the capability table is the
-                # only reliable signal: a monitor without speakers still answers
-                # /GetValue 62 with something that looks like a valid level.
-                '62' { $hasVolume = $true }
                 # Picture presets. Only the values listed here are accepted;
                 # sending any other one is silently ignored by the panel.
                 '14' {
@@ -202,7 +198,6 @@ foreach ($m in $monitors) {
         Contrast     = $curContrast
         CurrentInput = $curInput
         InputOptions = $inputOptions
-        HasVolume    = $hasVolume
         PresetOptions = $presetOptions
         IsExternal   = $isExternal
         Report       = $txt
@@ -345,16 +340,14 @@ foreach ($d in $externals) {
     Add-Line ';   FILL IN: the value for the port your laptop is plugged into'
     Add-Line 'InputLaptop='
     Add-Line ''
-    Add-Line ';   Extras this panel reports. The tuner (Ctrl+Alt+T) shows a row'
-    Add-Line ';   for each of these; delete a line to hide that row.'
-    Add-Line (';     VCP 62, monitor speaker volume')
-    Add-Line ("Volume={0}" -f $(if ($d.HasVolume) { '1' } else { '0' }))
     if ($d.PresetOptions.Count -gt 0) {
-        Add-Line ';     VCP 14, picture presets. Only these values are accepted.'
+        Add-Line ';   VCP 14, picture presets. Only these values are accepted.'
+        Add-Line ';   The tuner (Ctrl+Alt+T) shows a preset row for this monitor;'
+        Add-Line ';   delete the line to hide that row.'
         $pairs = @($d.PresetOptions | Sort-Object | ForEach-Object { '{0}:{1}' -f $_, (Get-PresetFriendlyName $_) })
         Add-Line ("Presets={0}" -f ($pairs -join ','))
     } else {
-        Add-Line ';     VCP 14 not reported, so no picture-preset row.'
+        Add-Line ';   VCP 14 not reported, so no picture-preset row.'
         Add-Line 'Presets='
     }
     Add-Line ''

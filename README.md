@@ -217,33 +217,24 @@ Falls back to the mouse pointer when nothing useful is focused.
 
 ---
 
-## Volume and picture presets
+## Picture presets
 
-Two more VCP codes your monitors already expose:
+The panel's own picture mode (VCP `14`) can be part of a profile - sRGB for
+work, a warmer preset at night. It's stored in `[Preset.<profile>]`, is
+per-profile and opt-in per monitor, so a profile that doesn't mention it leaves
+the monitor alone. Tick **Picture preset** in the tuner to get the row.
 
-| | VCP | Stored in |
-|---|---|---|
-| Speaker volume | `62` | `[Volume.<profile>]` |
-| Picture preset | `14` | `[Preset.<profile>]` |
-
-Both are per-profile and opt-in per monitor, so a profile that doesn't mention
-them leaves the monitor alone. Tick **Sound & colour** in the tuner to get the
-rows.
-
-Support is declared in config, not probed:
+Which values a panel accepts is declared in config, not probed:
 
 ```ini
 [Monitor.Left]
-Volume=1
 Presets=2:Display native,4:5000K,5:6500K,6:7500K,7:8200K,8:9300K,11:User 1,13:User 3
 ```
 
-Probing is tempting but wrong here: a monitor with no speakers still answers
-`/GetValue 62` with something that looks like a perfectly valid level, so
-probing invents features that aren't there. `Detect-Monitors.ps1` reads the real
-capability table and writes both lines for you; a bare number list like
-`Presets=5,11` works too and picks up the standard MCCS names. **Only the values
-a panel lists are accepted** - sending any other one is silently ignored.
+**Only the values a panel lists are accepted** - sending any other one is
+silently ignored, with no error. `Detect-Monitors.ps1` reads the real capability
+table and writes this line for you; a bare number list like `Presets=5,11` works
+too and picks up the standard MCCS names. Delete the line to hide the row.
 
 ---
 
@@ -569,7 +560,8 @@ Right=60
 bindings if you want them.
 
 **Volume.** If your monitors have speakers, VCP `62` is audio volume. The
-plumbing is already there — `Set-MonitorVcp -Code 62` in `lib\Common.ps1`.
+plumbing is there — `Set-MonitorVcp -Code 62` in `lib\Common.ps1` — but nothing
+in the UI uses it.
 
 ---
 

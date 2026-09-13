@@ -8,3 +8,7 @@
 
 # Backup written by the tuner before it edits config.ini
 *.bak
+detected/vcp_1_____DISPLAY1_Monitor0.csv
+detected/vcp_1_____DISPLAY1_Monitor0.txt
+detected/vcp_2_____DISPLAY2_Monitor0.csv
+detected/vcp_2_____DISPLAY2_Monitor0.txt
